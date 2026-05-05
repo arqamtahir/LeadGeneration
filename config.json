@@ -1,0 +1,95 @@
+{
+  "sheet_id": "1x8Y8uLcyOAKog6ndOUgict1SXRLmKwKUV5eZUy7NEC8",
+  "sheet_name": "Priority",
+  "service_account_file": "service_account.json",
+  "smtp_accounts": [
+    {
+      "name": "Arqam",
+      "email": "muhammadarqam920@gmail.com",
+      "password": "vlck xxvf wrqk knxn",
+      "host": "smtp.gmail.com",
+      "port": 587
+    },
+    {
+      "name": "huzaifa khalid cto",
+      "email": "huzaifa.khalid@algocrew.io",
+      "password": "Algocrew@cto5999",
+      "host": "smtp.zoho.com",
+      "port": 587
+    },
+    {
+      "name": "",
+      "email": "",
+      "password": "",
+      "host": "smtp.gmail.com",
+      "port": 587
+    },
+    {
+      "name": "",
+      "email": "",
+      "password": "",
+      "host": "smtp.gmail.com",
+      "port": 587
+    },
+    {
+      "name": "",
+      "email": "",
+      "password": "",
+      "host": "smtp.gmail.com",
+      "port": 587
+    }
+  ],
+  "email_templates": [
+    {
+      "body": "Hi {{name}},\n\nI came across {{company}} and was impressed by your work.\n\nWe help companies like yours with [YOUR SERVICE]. I'd love to explore if there's a fit.\n\nWould you be open to a 15-minute call this week?\n\nBest,\n{{sender_name}}",
+      "name": "Cold Intro",
+      "subject": "Quick question for {{name}} at {{company}}"
+    },
+    {
+      "body": "Hi {{name}},\n\nJust wanted to follow up on my previous email.\n\nI know you're busy \u2014 I'll be brief. We've helped similar companies achieve [RESULT].\n\nWorth a quick chat?\n\nBest,\n{{sender_name}}",
+      "name": "Follow-Up 1",
+      "subject": "Re: Quick question for {{name}} at {{company}}"
+    }
+  ],
+  "min_delay": 120,
+  "max_delay": 300,
+  "field_mapping": {
+    "FirstName": "FirstName",
+    "LastName": "LastName",
+    "EmployeeDesignation": "EmployeeDesignation",
+    "CompanyName": "CompanyName",
+    "Industry": "Industry",
+    "Email": "Email",
+    "PersonLinkedIn": "PersonLinkedIn",
+    "CompanyLinkedIn": "Company Linkedin Url",
+    "Website": "Website",
+    "FirstPhone": "FirstPhone",
+    "Country": "Country",
+    "Status": "Status",
+    "Tier": "Tier",
+    "PriorityScore": "PriorityScore",
+    "Owner": "Owner",
+    "SendingInbox": "SendingInbox",
+    "E1_Date": "E1_Date",
+    "E2_Date": "E2_Date",
+    "E3_Date": "E3_Date",
+    "E4_Date": "E4_Date",
+    "LI_Request": "LI_Request",
+    "LI_Accepted": "LI_Accepted",
+    "LastReply": "LastReply",
+    "Notes": "Notes"
+  },
+  "table_fields": [
+    "CompanyName",
+    "Country",
+    "E1_Date",
+    "Email",
+    "EmployeeDesignation",
+    "FirstName",
+    "Industry",
+    "LastName",
+    "LastReply",
+    "Status",
+    "Tier"
+  ]
+}

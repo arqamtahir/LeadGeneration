@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Farance Command Center</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<!-- ── Topbar ──────────────────────────────────────────────── -->
+<div id="topbar">
+  <div class="logo-mark">
+    <i data-lucide="zap" style="width:14px;height:14px;stroke:var(--accent)"></i>
+  </div>
+  <span class="logo-text">Farance</span>
+  <span class="logo-sub">Command Center</span>
+  <span id="sync-status" class="text-muted"></span>
+  <div class="spacer"></div>
+  <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme"></button>
+  <span class="theme-icon" id="theme-icon">
+    <i data-lucide="moon" style="width:14px;height:14px"></i>
+  </span>
+  <div style="display:flex;align-items:center;gap:8px;margin-left:8px;padding-left:12px;border-left:1px solid var(--dim)">
+    <span style="font-size:12px;color:var(--muted)">{{ user.name }}</span>
+    <a href="/logout" style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:6px;border:1px solid var(--dim)" title="Sign out">
+      <i data-lucide="log-out" style="width:12px;height:12px"></i>
+    </a>
+  </div>
+</div>
+
+<!-- ── Layout ──────────────────────────────────────────────── -->
+<div id="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <nav id="sidebar">
+
+    <div class="nav-section-label">Workspace</div>
+
+    <button id="tab-dashboard" class="nav-item" onclick="showTab('dashboard')">
+      <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+      Dashboard
+    </button>
+    <button id="tab-leads" class="nav-item active" onclick="showTab('leads')">
+      <span class="nav-icon"><i data-lucide="users"></i></span>
+      Leads
+    </button>
+    <button id="tab-sequences" class="nav-item" onclick="showTab('sequences')">
+      <span class="nav-icon"><i data-lucide="git-branch"></i></span>
+      Sequences
+    </button>
+    <button id="tab-blast" class="nav-item" onclick="showTab('blast')">
+      <span class="nav-icon"><i data-lucide="send"></i></span>
+      Blast
+    </button>
+    <button id="tab-pipeline" class="nav-item" onclick="showTab('pipeline')">
+      <span class="nav-icon"><i data-lucide="kanban-square"></i></span>
+      Pipeline
+    </button>
+    <button id="tab-analytics" class="nav-item" onclick="showTab('analytics')">
+      <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
+      Analytics
+    </button>
+    <button id="tab-linkedin" class="nav-item" onclick="showTab('linkedin')">
+      <span class="nav-icon"><i data-lucide="linkedin"></i></span>
+      LinkedIn Queue
+      <span class="nav-badge" id="li-pending-badge" style="display:none">0</span>
+    </button>
+    <button id="tab-inbox" class="nav-item" onclick="showTab('inbox')">
+      <span class="nav-icon"><i data-lucide="inbox"></i></span>
+      Inbox
+      <span class="nav-badge" id="inbox-unread-badge" style="display:none">0</span>
+    </button>
+    <button id="tab-import" class="nav-item" onclick="showTab('import')">
+      <span class="nav-icon"><i data-lucide="upload"></i></span>
+      Import
+    </button>
+    <button id="tab-tasks" class="nav-item" onclick="showTab('tasks')">
+      <span class="nav-icon"><i data-lucide="list-checks"></i></span>
+      Tasks
+      <span class="nav-badge" id="tasks-pending-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section-label">Config</div>
+
+    <button id="tab-settings" class="nav-item" onclick="showTab('settings')">
+      <span class="nav-icon"><i data-lucide="settings-2"></i></span>
+      Settings
+    </button>
+    <button id="tab-mapping" class="nav-item" onclick="showTab('mapping')">
+      <span class="nav-icon"><i data-lucide="arrow-left-right"></i></span>
+      Field Mapping
+    </button>
+
+    <div class="spacer"></div>
+
+    <!-- Blast live badge -->
+    <div id="blast-sidebar" class="hidden">
+      <div class="blast-live-dot"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Blast Running</div>
+      <div id="sb-progress">0 / 0</div>
+      <button class="btn btn-danger btn-sm" style="width:100%;margin-top:6px" onclick="stopBlast()">
+        <i data-lucide="square" style="width:12px;height:12px"></i> Stop
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Main ────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- ════════════════════════════════════════════════════
+         DASHBOARD VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-dashboard" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Dashboard</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Overview of your outreach pipeline</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+
+      <!-- KPI row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+        <div class="kpi-card" style="--kpi-color:var(--accent)">
+          <div class="kpi-icon"><i data-lucide="users" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-label">Total Leads</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:var(--gold)">
+          <div class="kpi-icon" style="color:var(--gold)"><i data-lucide="send" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="kpi-today" style="color:var(--gold)">—</div>
+          <div class="kpi-label">Sent Today</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#22c55e">
+          <div class="kpi-icon" style="color:#22c55e"><i data-lucide="message-circle" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="kpi-replied" style="color:#22c55e">—</div>
+          <div class="kpi-label">Replied</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#a855f7">
+          <div class="kpi-icon" style="color:#a855f7"><i data-lucide="calendar-check" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="kpi-meetings" style="color:#a855f7">—</div>
+          <div class="kpi-label">Meetings Booked</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <!-- Pipeline breakdown -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="bar-chart-2" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+            Pipeline Breakdown
+          </div>
+          <div id="dash-pipeline">
+            <div class="text-muted" style="font-size:12px">Load leads to see breakdown</div>
+          </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="activity" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+            Sequence Progress
+          </div>
+          <div id="dash-sequence">
+            <div class="text-muted" style="font-size:12px">Load leads to see sequence progress</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily send gauge -->
+      <div class="card" style="margin-top:18px">
+        <div class="card-title">
+          <i data-lucide="gauge" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+          Today's Send Quota
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="flex:1">
+            <div class="bar-track" style="height:10px;border-radius:999px">
+              <div id="dash-quota-bar" class="bar-fill" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--gold))"></div>
+            </div>
+          </div>
+          <div style="font-size:13px;font-weight:700;white-space:nowrap">
+            <span id="dash-quota-sent">0</span>
+            <span style="color:var(--muted);font-weight:400"> / </span>
+            <span id="dash-quota-limit">30</span>
+            <span style="color:var(--muted);font-weight:400;font-size:11px"> today</span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-dashboard -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         LEADS VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-leads">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <h1 class="page-title" style="margin:0">Leads</h1>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="exportCsv()">
+          <i data-lucide="download" style="width:13px;height:13px"></i> Export CSV
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="fetchLeads()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Bulk action bar -->
+      <div id="bulk-bar" style="display:none;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:var(--accent-dim);border:1px solid var(--accent-glow);border-radius:12px">
+        <i data-lucide="check-square" style="width:14px;height:14px;color:var(--accent)"></i>
+        <span id="bulk-count" style="font-size:13px;font-weight:600;color:var(--accent)">0 selected</span>
+        <select id="bulk-status-select" class="fc fc-sm" style="width:auto;margin-left:8px">
+          <option value="">Change status…</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="applyBulkStatus()">Apply</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div id="filter-bar">
+        <div class="search-wrap">
+          <span class="search-icon"><i data-lucide="search" style="width:13px;height:13px"></i></span>
+          <input id="search" type="text" class="fc fc-sm"
+                 style="padding-left:32px;width:220px"
+                 placeholder="Search leads…"
+                 oninput="applyFilters()"/>
+        </div>
+        <select id="filter-status"   class="filter-select" onchange="applyFilters()"><option value="">All Statuses</option></select>
+        <select id="filter-tier"     class="filter-select" onchange="applyFilters()"><option value="">All Tiers</option></select>
+        <select id="filter-industry" class="filter-select" onchange="applyFilters()"><option value="">All Industries</option></select>
+        <select id="filter-country"  class="filter-select" onchange="applyFilters()"><option value="">All Countries</option></select>
+      </div>
+
+      <div id="lead-count" class="text-muted"></div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead id="lead-thead"></thead>
+          <tbody id="lead-table"></tbody>
+        </table>
+      </div>
+    </div><!-- /view-leads -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         BLAST VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-blast" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Email Blast</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Configure and launch your outreach campaign</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+
+        <!-- Left: config -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="sliders-horizontal" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+            Blast Config
+          </div>
+
+          <div style="display:grid;gap:12px">
+            <div>
+              <label class="lbl">Sending Inbox</label>
+              <select id="blast-smtp" class="fc"></select>
+            </div>
+            <div>
+              <label class="lbl">Sequence</label>
+              <select id="blast-sequence" class="fc" onchange="syncBlastTemplate()">
+                <option value="E1">E1</option>
+                <option value="E2">E2</option>
+                <option value="E3">E3</option>
+                <option value="E4">E4</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Template</label>
+              <select id="blast-template" class="fc" onchange="previewBlastTemplate()"></select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <label class="lbl">Min Delay (s)</label>
+                <input id="min-delay" type="number" class="fc" value="120" min="10" onchange="updateDelayLabel()"/>
+              </div>
+              <div>
+                <label class="lbl">Max Delay (s)</label>
+                <input id="max-delay" type="number" class="fc" value="300" min="10" onchange="updateDelayLabel()"/>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--muted)">
+              <i data-lucide="clock" style="width:11px;height:11px;vertical-align:middle"></i>
+              Random delay: <strong id="delay-calc">2–5 min</strong> between sends
+            </div>
+
+            <!-- AI Research toggle -->
+            <div class="ai-toggle-box">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="blast-ai-mode" onchange="toggleAiMode()" style="width:16px;height:16px"/>
+                <span style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px">
+                  <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--gold)"></i>
+                  AI Research Mode
+                </span>
+              </label>
+              <div style="font-size:11px;color:var(--muted);margin-top:5px;padding-left:26px">
+                Claude researches each lead and writes a unique custom email — slower, much higher quality
+              </div>
+            </div>
+
+            <!-- Daily limit -->
+            <div>
+              <label class="lbl">Daily Send Limit</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input id="blast-daily-limit" type="number" class="fc" value="30" min="1" max="200" style="width:80px"/>
+                <span id="blast-daily-status" style="font-size:12px;color:var(--muted)">Loading…</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: preview -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="eye" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+            Template Preview
+          </div>
+          <div style="display:grid;gap:8px">
+            <div>
+              <label class="lbl">Subject</label>
+              <input id="blast-subject" type="text" class="fc fc-sm" placeholder="Subject…"/>
+            </div>
+            <div>
+              <label class="lbl">Body</label>
+              <textarea id="blast-body" class="fc" rows="10" style="font-family:monospace;font-size:12px;resize:vertical"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected + controls -->
+      <div class="card" style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div id="blast-selected-count" class="text-muted" style="flex:1;font-size:13px">
+            No leads selected — check boxes in the Leads tab first.
+          </div>
+          <button class="btn btn-primary" onclick="startBlast()">
+            <i data-lucide="send" style="width:14px;height:14px"></i> Start Blast
+          </button>
+          <button class="btn btn-danger" onclick="stopBlast()">
+            <i data-lucide="square" style="width:14px;height:14px"></i> Stop
+          </button>
+        </div>
+      </div>
+
+      <!-- Log -->
+      <div class="card">
+        <div class="card-title">
+          <i data-lucide="terminal" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+          Live Log
+        </div>
+        <div id="blast-log" class="log-box">Waiting to start…</div>
+      </div>
+    </div><!-- /view-blast -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         INBOX VIEW
+    ════════════════════════════════════════════════════ -->
+    <!-- ════════════════════════════════════════════════════
+         LINKEDIN QUEUE VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-linkedin" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">LinkedIn Queue</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">
+            Leads to connect with after emailing — opens in the correct Chrome profile
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="renderLinkedInQueue()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="li-filter-btn active" onclick="setLiFilter('pending', this)">
+          Pending <span id="li-count-pending" class="li-filter-count">0</span>
+        </button>
+        <button class="li-filter-btn" onclick="setLiFilter('done', this)">
+          Done <span id="li-count-done" class="li-filter-count">0</span>
+        </button>
+        <button class="li-filter-btn" onclick="setLiFilter('all', this)">
+          All <span id="li-count-all" class="li-filter-count">0</span>
+        </button>
+      </div>
+
+      <!-- Queue list -->
+      <div id="li-queue-list">
+        <div class="text-muted" style="font-size:13px;padding:20px 0">
+          Load leads first from the Leads tab.
+        </div>
+      </div>
+    </div><!-- /view-linkedin -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         SEQUENCES VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-sequences" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Sequences</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Leads due for their next follow-up email</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadSequences()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Delay config -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title"><i data-lucide="clock" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Wait Days Between Steps</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          <div>
+            <label class="lbl">E1 → E2 (days)</label>
+            <input id="seq-delay-e1e2" type="number" class="fc" value="3" min="1" max="60"/>
+          </div>
+          <div>
+            <label class="lbl">E2 → E3 (days)</label>
+            <input id="seq-delay-e2e3" type="number" class="fc" value="5" min="1" max="60"/>
+          </div>
+          <div>
+            <label class="lbl">E3 → E4 (days)</label>
+            <input id="seq-delay-e3e4" type="number" class="fc" value="7" min="1" max="60"/>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px">
+          <button class="btn btn-primary btn-sm" onclick="saveSeqDelays()">
+            <i data-lucide="save" style="width:13px;height:13px"></i> Save Delays
+          </button>
+        </div>
+      </div>
+
+      <!-- Due leads per step -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px" id="seq-kpi-row">
+        <div class="kpi-card" style="--kpi-color:var(--gold)">
+          <div class="kpi-icon" style="color:var(--gold)"><i data-lucide="send" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="seq-due-e2" style="color:var(--gold)">—</div>
+          <div class="kpi-label">Due for E2</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#f97316">
+          <div class="kpi-icon" style="color:#f97316"><i data-lucide="send" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="seq-due-e3" style="color:#f97316">—</div>
+          <div class="kpi-label">Due for E3</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:#ef4444">
+          <div class="kpi-icon" style="color:#ef4444"><i data-lucide="send" style="width:18px;height:18px"></i></div>
+          <div class="kpi-value" id="seq-due-e4" style="color:#ef4444">—</div>
+          <div class="kpi-label">Due for E4</div>
+        </div>
+      </div>
+
+      <!-- Per-step tables -->
+      <div id="seq-steps-container"></div>
+    </div><!-- /view-sequences -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         PIPELINE VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-pipeline" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Pipeline</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Drag leads between stages</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="renderPipeline()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+      <div id="kanban-board" class="kanban-board"></div>
+    </div><!-- /view-pipeline -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         ANALYTICS VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-analytics" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Analytics</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Performance metrics for your outreach</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAnalytics()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Top KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+        <div class="kpi-card"><div class="kpi-icon"><i data-lucide="users" style="width:18px;height:18px"></i></div><div class="kpi-value" id="an-total">—</div><div class="kpi-label">Total Leads</div></div>
+        <div class="kpi-card" style="--kpi-color:var(--gold)"><div class="kpi-icon" style="color:var(--gold)"><i data-lucide="send" style="width:18px;height:18px"></i></div><div class="kpi-value" id="an-contacted" style="color:var(--gold)">—</div><div class="kpi-label">Contacted</div></div>
+        <div class="kpi-card" style="--kpi-color:#22c55e"><div class="kpi-icon" style="color:#22c55e"><i data-lucide="message-circle" style="width:18px;height:18px"></i></div><div class="kpi-value" id="an-reply-rate" style="color:#22c55e">—</div><div class="kpi-label">Reply Rate</div></div>
+        <div class="kpi-card" style="--kpi-color:#a855f7"><div class="kpi-icon" style="color:#a855f7"><i data-lucide="trophy" style="width:18px;height:18px"></i></div><div class="kpi-value" id="an-won" style="color:#a855f7">—</div><div class="kpi-label">Won</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+        <div class="card">
+          <div class="card-title"><i data-lucide="bar-chart-2" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Sends Per Day (Last 30)</div>
+          <div id="an-sends-chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i data-lucide="git-branch" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Sequence Funnel</div>
+          <div id="an-funnel"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="card">
+          <div class="card-title"><i data-lucide="building-2" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Top Industries</div>
+          <div id="an-industries"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i data-lucide="star" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Performance by Tier</div>
+          <div id="an-tiers"></div>
+        </div>
+      </div>
+    </div><!-- /view-analytics -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         IMPORT VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-import" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Import Leads</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Upload a CSV and map columns to your fields</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Upload -->
+      <div class="card" style="margin-bottom:18px" id="import-step1">
+        <div class="card-title"><i data-lucide="upload" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Step 1 — Upload CSV</div>
+        <div class="import-dropzone" id="import-dropzone" onclick="document.getElementById('csv-file-input').click()">
+          <i data-lucide="file-text" style="width:32px;height:32px;color:var(--muted);margin-bottom:12px"></i>
+          <div style="font-weight:600;margin-bottom:4px">Drop CSV here or click to browse</div>
+          <div style="font-size:12px;color:var(--muted)">First row must be column headers</div>
+          <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleCsvUpload(this)"/>
+        </div>
+        <div id="import-file-info" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
+      </div>
+
+      <!-- Step 2: Map columns -->
+      <div class="card" style="margin-bottom:18px;display:none" id="import-step2">
+        <div class="card-title"><i data-lucide="arrow-left-right" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Step 2 — Map Columns</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Match your CSV columns to the app's internal fields. Leave blank to skip.</div>
+        <div id="import-mapping-table" style="display:grid;gap:8px"></div>
+      </div>
+
+      <!-- Step 3: Preview + import -->
+      <div class="card" style="display:none" id="import-step3">
+        <div class="card-title"><i data-lucide="eye" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>Step 3 — Preview & Import</div>
+        <div id="import-preview" style="overflow:auto;max-height:300px;margin-bottom:14px"></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-primary" onclick="runImport()">
+            <i data-lucide="upload" style="width:14px;height:14px"></i>
+            Import to Sheet
+          </button>
+          <button class="btn btn-ghost" onclick="resetImport()">Start Over</button>
+          <span id="import-msg" style="font-size:13px;color:var(--muted)"></span>
+        </div>
+      </div>
+    </div><!-- /view-import -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         TASKS VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-tasks" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Tasks</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Follow-up actions linked to your leads</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-primary btn-sm" onclick="openNewTaskModal()">
+          <i data-lucide="plus" style="width:13px;height:13px"></i> New Task
+        </button>
+      </div>
+
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="li-filter-btn active" onclick="setTaskFilter('pending',this)">Pending <span id="task-count-pending" class="li-filter-count">0</span></button>
+        <button class="li-filter-btn" onclick="setTaskFilter('done',this)">Done <span id="task-count-done" class="li-filter-count">0</span></button>
+        <button class="li-filter-btn" onclick="setTaskFilter('all',this)">All <span id="task-count-all" class="li-filter-count">0</span></button>
+      </div>
+
+      <div id="tasks-list"></div>
+    </div><!-- /view-tasks -->
+
+
+    <div id="view-inbox" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="margin:0">Inbox</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Replies from your leads — last 7 days across all accounts</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadInbox()">
+          <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Refresh
+        </button>
+      </div>
+
+      <!-- Account filter chips -->
+      <div id="inbox-accounts" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"></div>
+
+      <!-- IMAP errors -->
+      <div id="inbox-errors"></div>
+
+      <!-- Loading / email list -->
+      <div id="inbox-content">
+        <div style="text-align:center;padding:60px 0;color:var(--muted)">
+          <i data-lucide="inbox" style="width:40px;height:40px;margin:0 auto 12px;display:block;opacity:.3"></i>
+          <div style="font-size:13px">Click Refresh to load emails from your SMTP accounts</div>
+        </div>
+      </div>
+    </div><!-- /view-inbox -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         SETTINGS VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-settings" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <h1 class="page-title" style="margin:0">Settings</h1>
+      </div>
+
+      <!-- Google Sheet -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-title">
+          <i data-lucide="table-2" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+          Google Sheet
+        </div>
+        <!-- Google OAuth connection status -->
+        <div id="google-connect-row" style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 14px;background:var(--surface2);border:1px solid var(--dim);border-radius:8px">
+          <span id="google-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></span>
+          <span id="google-status-text" style="font-size:12px;color:var(--muted);flex:1">Checking connection…</span>
+          <a id="google-connect-btn" href="/oauth/connect" class="btn btn-sm btn-primary" style="text-decoration:none">
+            <i data-lucide="link" style="width:12px;height:12px"></i> Connect Google Account
+          </a>
+          <button id="google-disconnect-btn" class="btn btn-sm btn-ghost" style="display:none;color:var(--danger)" onclick="disconnectGoogle()">
+            <i data-lucide="unlink" style="width:12px;height:12px"></i> Disconnect
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="lbl">Sheet ID or URL</label>
+            <input id="cfg-sheet-id" type="text" class="fc fc-sm" placeholder="Paste Sheet ID or full URL"/>
+          </div>
+          <div>
+            <label class="lbl">Tab Name</label>
+            <input id="cfg-sheet-name" type="text" class="fc fc-sm" placeholder="Sheet1"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visible columns -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-title">
+          <i data-lucide="columns" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+          Visible Table Columns
+        </div>
+        <div id="table-fields-checkboxes"
+             style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+        </div>
+      </div>
+
+      <!-- SMTP accounts -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-title">
+          <i data-lucide="mail" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+          SMTP Accounts
+        </div>
+        <div id="smtp-slots" style="display:grid;gap:12px"></div>
+      </div>
+
+      <!-- Email templates -->
+      <div class="card" style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0">
+            <i data-lucide="file-text" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+            Email Templates
+          </div>
+          <div class="spacer"></div>
+          <button class="btn btn-ghost btn-sm" onclick="addTemplate()">
+            <i data-lucide="plus" style="width:13px;height:13px"></i> Add Template
+          </button>
+        </div>
+        <div id="template-slots" style="display:grid;gap:12px"></div>
+      </div>
+
+      <!-- AI Research -->
+      <div class="card" style="margin-bottom:18px;border-color:var(--gold-border)">
+        <div class="card-title" style="color:var(--gold)">
+          <i data-lucide="sparkles" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+          AI Research — OpenAI GPT
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+          Used in AI Research Mode — GPT-4o-mini writes a unique, researched email for every lead.
+          The AI API key is managed by Farance — no setup needed on your end.
+        </div>
+        <div style="display:grid;gap:12px">
+          <div>
+            <label class="lbl">Your Value Proposition (optional)</label>
+            <input id="cfg-ai-value-prop" type="text" class="fc fc-sm" placeholder="We help SaaS companies reduce churn by 30%…"/>
+          </div>
+          <div>
+            <label class="lbl">Custom AI System Prompt (optional — leave blank for default)</label>
+            <textarea id="cfg-ai-system-prompt" class="fc" rows="4" style="font-size:12px;font-family:monospace"
+              placeholder="You are a B2B sales expert…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="btn btn-primary" onclick="saveSettings()">
+          <i data-lucide="save" style="width:14px;height:14px"></i> Save Settings
+        </button>
+        <span id="save-msg" class="hidden text-success" style="font-size:13px">
+          <i data-lucide="check-circle-2" style="width:13px;height:13px;vertical-align:middle"></i> Saved!
+        </span>
+      </div>
+    </div><!-- /view-settings -->
+
+
+    <!-- ════════════════════════════════════════════════════
+         FIELD MAPPING VIEW
+    ════════════════════════════════════════════════════ -->
+    <div id="view-mapping" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <h1 class="page-title" style="margin:0">Field Mapping</h1>
+      </div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div style="display:flex;align-items:center;margin-bottom:14px">
+          <div>
+            <div class="card-title" style="margin:0">
+              <i data-lucide="arrow-left-right" style="width:13px;height:13px;vertical-align:middle;margin-right:5px"></i>
+              Map internal fields → sheet columns
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">
+              Use the dropdowns or type the exact column name from your sheet.
+            </div>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadSheetColumns()">
+            <i data-lucide="refresh-cw" style="width:13px;height:13px"></i> Load sheet columns
+          </button>
+        </div>
+        <div id="mapping-table" style="display:grid;gap:8px"></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="btn btn-primary" onclick="saveMapping()">
+          <i data-lucide="save" style="width:14px;height:14px"></i> Save Mapping
+        </button>
+        <span id="mapping-msg" class="hidden text-success" style="font-size:13px">
+          <i data-lucide="check-circle-2" style="width:13px;height:13px;vertical-align:middle"></i> Saved!
+        </span>
+      </div>
+    </div><!-- /view-mapping -->
+
+  </main><!-- /main -->
+</div><!-- /layout -->
+
+
+<!-- ── Task modal ─────────────────────────────────────────── -->
+<div id="task-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeTaskModal()">
+  <div class="modal-box" style="width:440px">
+    <div class="modal-header">
+      <div class="modal-title">New Task</div>
+      <button class="modal-close" onclick="closeTaskModal()"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div style="display:grid;gap:12px">
+      <div>
+        <label class="lbl">Task Title</label>
+        <input id="task-title" type="text" class="fc fc-sm" placeholder="e.g. Follow up call with John"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="lbl">Due Date</label>
+          <input id="task-due" type="date" class="fc fc-sm"/>
+        </div>
+        <div>
+          <label class="lbl">Priority</label>
+          <select id="task-priority" class="fc fc-sm">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="lbl">Linked Lead (optional)</label>
+        <select id="task-lead" class="fc fc-sm">
+          <option value="">— none —</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-primary" onclick="saveNewTask()">
+        <i data-lucide="check" style="width:14px;height:14px"></i> Save Task
+      </button>
+      <button class="btn btn-ghost" onclick="closeTaskModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Single-send modal ───────────────────────────────────── -->
+<div id="modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Send Email</div>
+        <div class="modal-subtitle" id="modal-subtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <i data-lucide="x" style="width:18px;height:18px"></i>
+      </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <label class="lbl">Sending Inbox</label>
+        <select id="modal-smtp" class="fc fc-sm" onchange="modalPreview()"></select>
+      </div>
+      <div>
+        <label class="lbl">Sequence</label>
+        <select id="modal-sequence" class="fc fc-sm" onchange="syncModalTemplate()">
+          <option value="E1">E1</option>
+          <option value="E2">E2</option>
+          <option value="E3">E3</option>
+          <option value="E4">E4</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label class="lbl">Template</label>
+      <select id="modal-template" class="fc fc-sm" onchange="modalPreview()"></select>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <label class="lbl">Subject</label>
+      <input id="modal-subject" type="text" class="fc fc-sm"/>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">Body</label>
+      <textarea id="modal-body" class="fc" rows="8"
+                style="font-family:monospace;font-size:12px;resize:vertical"></textarea>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-primary" onclick="confirmSend()">
+        <i data-lucide="send" style="width:14px;height:14px"></i> Send Now
+      </button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <span id="modal-msg" style="font-size:12px;margin-left:4px"></span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── Lead Detail Modal ───────────────────────────────────── -->
+<div id="lead-detail-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeLeadDetail()">
+  <div class="modal-box" style="width:660px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="ldm-name"></div>
+        <div class="modal-subtitle" id="ldm-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeLeadDetail()"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div id="ldm-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px"></div>
+    <div>
+      <label class="lbl">Notes</label>
+      <textarea id="ldm-notes" class="fc" rows="3" style="font-size:13px;resize:vertical" placeholder="Add notes…"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary btn-sm" id="ldm-send-btn">
+        <i data-lucide="send" style="width:13px;height:13px"></i> Send Email
+      </button>
+      <button class="btn btn-ghost btn-sm" id="ldm-save-notes-btn">
+        <i data-lucide="save" style="width:13px;height:13px"></i> Save Notes
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="closeLeadDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Email Read Modal ────────────────────────────────────── -->
+<div id="email-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeEmailModal()">
+  <div class="modal-box" style="width:640px">
+    <div class="modal-header">
+      <div style="min-width:0;flex:1">
+        <div class="modal-title" id="em-subject" style="word-break:break-word"></div>
+        <div class="modal-subtitle" id="em-from" style="margin-top:4px"></div>
+      </div>
+      <button class="modal-close" onclick="closeEmailModal()" style="flex-shrink:0;margin-left:12px"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:16px;display:flex;gap:16px" id="em-meta"></div>
+    <div id="em-body" style="font-size:13px;color:var(--text);white-space:pre-wrap;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;max-height:420px;overflow-y:auto;line-height:1.7;font-family:'SF Mono','Fira Code',monospace;font-size:12px"></div>
+  </div>
+</div>
+
+<!-- ── Blast Confirm Modal ─────────────────────────────────── -->
+<div id="blast-confirm-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeBlastConfirm()">
+  <div class="modal-box" style="width:460px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Confirm Blast</div>
+        <div class="modal-subtitle">Review before sending</div>
+      </div>
+      <button class="modal-close" onclick="closeBlastConfirm()"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div id="blast-confirm-body" style="margin-bottom:24px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="doStartBlast()">
+        <i data-lucide="send" style="width:14px;height:14px"></i> Yes, Start Blast
+      </button>
+      <button class="btn btn-ghost" onclick="closeBlastConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ───────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+
+<script src="/static/app.js"></script>
+<script>
+  // Init Lucide icons after DOM is ready
+  lucide.createIcons();
+</script>
+</body>
+</html>
