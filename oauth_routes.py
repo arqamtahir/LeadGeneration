@@ -31,7 +31,13 @@ def callback():
     from flask import session
     flow = get_oauth_flow()
     flow.code_verifier = session.pop("oauth_code_verifier", None)
-    flow.fetch_token(authorization_response=request.url)
+
+    # On Render the request arrives as http:// behind a proxy — force https
+    auth_response = request.url
+    if request.headers.get("X-Forwarded-Proto") == "https":
+        auth_response = auth_response.replace("http://", "https://", 1)
+
+    flow.fetch_token(authorization_response=auth_response)
     creds = flow.credentials
     current_user.google_token = token_to_json(creds)
     db.session.commit()
