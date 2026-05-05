@@ -8,24 +8,44 @@ import gspread
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import Flow
-from flask import url_for, session
+from flask import url_for, request as flask_request
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-CLIENT_CONFIG = {
-    "web": {
-        "client_id":     os.environ.get("GOOGLE_CLIENT_ID", ""),
-        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
-        "redirect_uris": [os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5001/oauth/callback")],
-        "auth_uri":      "https://accounts.google.com/o/oauth2/auth",
-        "token_uri":     "https://oauth2.googleapis.com/token",
+
+def _redirect_uri() -> str:
+    """Auto-detect the correct callback URL based on the current request host."""
+    # Explicit override via env var takes priority
+    if os.environ.get("GOOGLE_REDIRECT_URI"):
+        return os.environ["GOOGLE_REDIRECT_URI"]
+    # On Render (or any HTTPS host) build it from the incoming request
+    try:
+        base = flask_request.host_url.rstrip("/")
+        if flask_request.headers.get("X-Forwarded-Proto") == "https":
+            base = base.replace("http://", "https://")
+        return base + "/oauth/callback"
+    except RuntimeError:
+        # Outside request context (startup) — fall back to localhost
+        return "http://127.0.0.1:5001/oauth/callback"
+
+
+def _client_config():
+    uri = _redirect_uri()
+    return {
+        "web": {
+            "client_id":     os.environ.get("GOOGLE_CLIENT_ID", ""),
+            "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", ""),
+            "redirect_uris": [uri],
+            "auth_uri":      "https://accounts.google.com/o/oauth2/auth",
+            "token_uri":     "https://oauth2.googleapis.com/token",
+        }
     }
-}
 
 
 def get_oauth_flow():
-    flow = Flow.from_client_config(CLIENT_CONFIG, scopes=SCOPES)
-    flow.redirect_uri = CLIENT_CONFIG["web"]["redirect_uris"][0]
+    config = _client_config()
+    flow = Flow.from_client_config(config, scopes=SCOPES)
+    flow.redirect_uri = config["web"]["redirect_uris"][0]
     return flow
 
 
