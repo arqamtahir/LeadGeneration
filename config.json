@@ -41,9 +41,9 @@
     }
   ],
 
-"daily_limit": 30,
-"min_delay": 20,
-"max_delay": 45,
+"daily_limit": 50,
+"min_delay": 300,
+"max_delay": 900,
 
 "ai_value_proposition": "We help B2B SaaS companies generate more qualified pipeline, improve reply rates, and book more meetings through personalized AI-powered outbound campaigns.",
 
