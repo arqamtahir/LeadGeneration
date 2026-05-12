@@ -12,6 +12,10 @@ var activeLead    = null;
 var blastPoll     = null;
 var sheetColumns  = [];
 
+// Pagination
+var PAGE_SIZE    = 50;
+var currentPage  = 1;
+
 var DEFAULT_FIELD_KEYS = [
   'FirstName','LastName','EmployeeDesignation','CompanyName','Industry',
   'Email','PersonLinkedIn','CompanyLinkedIn','Website','FirstPhone','Country',
@@ -172,17 +176,23 @@ function applyFilters() {
     return true;
   });
 
+  currentPage = 1;
   renderLeadsTable(filteredLeads);
   document.getElementById('lead-count').textContent =
     'Showing ' + filteredLeads.length + ' of ' + allLeads.length + ' leads';
 }
 
 function renderLeadsTable(leads) {
-  var fields    = config.table_fields || [];
-  var statuses  = config.pipeline_statuses || [];
+  var fields     = config.table_fields || [];
+  var statuses   = config.pipeline_statuses || [];
   var linkFields = { PersonLinkedIn: 1, CompanyLinkedIn: 1, Website: 1 };
+  var totalPages = Math.max(1, Math.ceil(leads.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
 
-  var rows = leads.map(function (l) {
+  var start     = (currentPage - 1) * PAGE_SIZE;
+  var pageLeads = leads.slice(start, start + PAGE_SIZE);
+
+  var rows = pageLeads.map(function (l) {
     var idx   = allLeads.indexOf(l);
     var cells = '<td><input type="checkbox" class="lead-cb" data-row="' + l._row +
                 '" data-idx="' + idx + '" onchange="updateBlastCount()"/></td>';
@@ -225,6 +235,65 @@ function renderLeadsTable(leads) {
 
   document.getElementById('lead-table').innerHTML = rows ||
     '<tr><td colspan="99" style="text-align:center;padding:36px;color:var(--muted)">No leads match your filters.</td></tr>';
+
+  var paginationHtml = renderPaginationHtml(currentPage, totalPages, leads.length);
+  document.getElementById('pagination-top').innerHTML    = paginationHtml;
+  document.getElementById('pagination-bottom').innerHTML = paginationHtml;
+}
+
+function renderPaginationHtml(page, totalPages, total) {
+  if (totalPages <= 1) return '';
+
+  var start = (page - 1) * PAGE_SIZE + 1;
+  var end   = Math.min(page * PAGE_SIZE, total);
+
+  var btns = '';
+
+  // Prev
+  btns += '<button class="pg-btn" onclick="goToPage(' + (page - 1) + ')" ' +
+          (page === 1 ? 'disabled' : '') + '>' +
+          '<i data-lucide="chevron-left" style="width:13px;height:13px"></i></button>';
+
+  // Page numbers — show up to 7 pages with ellipsis
+  var pages = [];
+  if (totalPages <= 7) {
+    for (var i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages = [1];
+    if (page > 3)           pages.push('…');
+    for (var i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+    if (page < totalPages - 2) pages.push('…');
+    pages.push(totalPages);
+  }
+
+  pages.forEach(function (p) {
+    if (p === '…') {
+      btns += '<span style="padding:0 4px;color:var(--muted);font-size:12px">…</span>';
+    } else {
+      btns += '<button class="pg-btn' + (p === page ? ' pg-active' : '') + '" ' +
+              'onclick="goToPage(' + p + ')">' + p + '</button>';
+    }
+  });
+
+  // Next
+  btns += '<button class="pg-btn" onclick="goToPage(' + (page + 1) + ')" ' +
+          (page === totalPages ? 'disabled' : '') + '>' +
+          '<i data-lucide="chevron-right" style="width:13px;height:13px"></i></button>';
+
+  return '<div style="display:flex;align-items:center;gap:4px">' +
+         '<span style="font-size:12px;color:var(--muted);margin-right:8px">' +
+         start + '–' + end + ' of ' + total + '</span>' + btns + '</div>';
+}
+
+function goToPage(page) {
+  var totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderLeadsTable(filteredLeads);
+  if (window.lucide) lucide.createIcons();
+  // Scroll table into view
+  var el = document.querySelector('.tbl-wrap');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function toggleAll(cb) {

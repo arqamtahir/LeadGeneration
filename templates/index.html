@@ -237,7 +237,10 @@
         <select id="filter-country"  class="filter-select" onchange="applyFilters()"><option value="">All Countries</option></select>
       </div>
 
-      <div id="lead-count" class="text-muted"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;min-height:24px">
+        <div id="lead-count" class="text-muted"></div>
+        <div id="pagination-top"></div>
+      </div>
 
       <div class="tbl-wrap">
         <table>
@@ -245,6 +248,10 @@
           <tbody id="lead-table"></tbody>
         </table>
       </div>
+
+      <!-- Pagination bottom -->
+      <div id="pagination-bottom" style="margin-top:14px"></div>
+
     </div><!-- /view-leads -->
 
 

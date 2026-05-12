@@ -922,3 +922,24 @@ input[type=checkbox] { accent-color: var(--accent); cursor: pointer; }
 
 /* ── Spinner (for inbox loading) ──────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Pagination ───────────────────────────────────────────── */
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.pg-btn:hover:not(:disabled) { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+.pg-btn:disabled { opacity: .35; cursor: not-allowed; }
+.pg-btn.pg-active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
