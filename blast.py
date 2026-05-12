@@ -6,10 +6,29 @@ import random
 import threading
 import json
 import os
+import urllib.request
 from datetime import date
 
 from email_utils import fill_template, send_email
 from sheets import get_sheet, stamp_email_sent
+
+
+def _start_keepalive():
+    """Ping the server every 10 min so Render doesn't sleep during a blast."""
+    url = os.environ.get("RENDER_EXTERNAL_URL", "")
+    if not url:
+        return  # local dev — no need
+
+    def _ping():
+        while state["running"]:
+            try:
+                urllib.request.urlopen(url + "/api/blast/status", timeout=10)
+            except Exception:
+                pass
+            time.sleep(600)  # 10 minutes
+
+    t = threading.Thread(target=_ping, daemon=True)
+    t.start()
 
 DAILY_LOG_FILE = "daily_sends.json"
 
@@ -68,6 +87,7 @@ def start(leads: list[dict], smtp_cfg: dict, template: dict,
         raise RuntimeError("A blast is already running.")
 
     state.update(running=True, log=[], total=len(leads), sent=0)
+    _start_keepalive()
     t = threading.Thread(
         target=_worker,
         args=(leads, smtp_cfg, template, min_delay, max_delay, sequence,
