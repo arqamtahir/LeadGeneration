@@ -1,7 +1,8 @@
 {
-  "sheet_id": "1x8Y8uLcyOAKog6ndOUgict1SXRLmKwKUV5eZUy7NEC8",
-  "sheet_name": "Priority",
-  "service_account_file": "service_account.json",
+"sheet_id": "1x8Y8uLcyOAKog6ndOUgict1SXRLmKwKUV5eZUy7NEC8",
+"sheet_name": "Priority",
+"service_account_file": "service_account.json",
+
   "smtp_accounts": [
     {
       "name": "Arqam",
@@ -39,57 +40,80 @@
       "port": 587
     }
   ],
-  "email_templates": [
-    {
-      "body": "Hi {{name}},\n\nI came across {{company}} and was impressed by your work.\n\nWe help companies like yours with [YOUR SERVICE]. I'd love to explore if there's a fit.\n\nWould you be open to a 15-minute call this week?\n\nBest,\n{{sender_name}}",
-      "name": "Cold Intro",
-      "subject": "Quick question for {{name}} at {{company}}"
-    },
-    {
-      "body": "Hi {{name}},\n\nJust wanted to follow up on my previous email.\n\nI know you're busy \u2014 I'll be brief. We've helped similar companies achieve [RESULT].\n\nWorth a quick chat?\n\nBest,\n{{sender_name}}",
-      "name": "Follow-Up 1",
-      "subject": "Re: Quick question for {{name}} at {{company}}"
-    }
-  ],
-  "min_delay": 120,
-  "max_delay": 300,
-  "field_mapping": {
-    "FirstName": "FirstName",
-    "LastName": "LastName",
-    "EmployeeDesignation": "EmployeeDesignation",
-    "CompanyName": "CompanyName",
-    "Industry": "Industry",
-    "Email": "Email",
-    "PersonLinkedIn": "PersonLinkedIn",
-    "CompanyLinkedIn": "Company Linkedin Url",
-    "Website": "Website",
-    "FirstPhone": "FirstPhone",
-    "Country": "Country",
-    "Status": "Status",
-    "Tier": "Tier",
-    "PriorityScore": "PriorityScore",
-    "Owner": "Owner",
-    "SendingInbox": "SendingInbox",
-    "E1_Date": "E1_Date",
-    "E2_Date": "E2_Date",
-    "E3_Date": "E3_Date",
-    "E4_Date": "E4_Date",
-    "LI_Request": "LI_Request",
-    "LI_Accepted": "LI_Accepted",
-    "LastReply": "LastReply",
-    "Notes": "Notes"
-  },
-  "table_fields": [
-    "CompanyName",
-    "Country",
-    "E1_Date",
-    "Email",
-    "EmployeeDesignation",
-    "FirstName",
-    "Industry",
-    "LastName",
-    "LastReply",
-    "Status",
-    "Tier"
-  ]
+
+"daily_limit": 30,
+"min_delay": 20,
+"max_delay": 45,
+
+"ai_value_proposition": "We help B2B SaaS companies generate more qualified pipeline, improve reply rates, and book more meetings through personalized AI-powered outbound campaigns.",
+
+"ai_system_prompt": "You are an elite B2B SDR and cold email copywriter.\n\nYour task is to generate highly personalized cold emails using the prospect’s company website, LinkedIn profile, job title, industry, and recent company activity.\n\nRules:\n- Keep emails between 60-120 words\n- Sound natural and conversational\n- Avoid generic compliments and sales language\n- Personalize the first line using real research\n- Focus on outcomes and business impact\n- Use short paragraphs\n- Include only one CTA\n- CTA should feel low-friction\n- Never sound spammy or desperate\n- Do not use emojis or excessive punctuation\n- Every email must feel unique and handcrafted\n\nGoal:\nGenerate cold emails that maximize reply rates and start conversations.",
+
+"email_templates": [
+{
+"name": "Cold Intro",
+
+  "subject": "{{name}}, quick idea for {{company}}",
+
+  "body": "Hi {{name}},\n\nI was looking into {{company}} and noticed {{personalized_observation}}.\n\nWe help B2B SaaS teams improve pipeline generation and outbound performance through highly personalized AI-driven outreach.\n\nRecently, we've helped similar companies increase reply rates and book more qualified meetings without increasing outbound volume.\n\nWould you be open to a quick 15-minute conversation sometime next week?\n\nBest regards,\n{{sender_name}}\n\nAlgoCrew\nAI-Powered Growth & Outbound Systems\nalgocrew.io\nhuzaifa.khalid@algocrew.io"
+},
+
+{
+  "name": "Follow-Up 1",
+
+  "subject": "Re: {{name}}, quick idea for {{company}}",
+
+  "body": "Hi {{name}},\n\nWanted to quickly follow up in case my last email got buried.\n\nI genuinely think there could be a fit based on what {{company}} is doing around {{industry_or_focus}}.\n\nHappy to share a few personalized outbound ideas that could help improve reply rates and pipeline quality.\n\nOpen to a short conversation sometime this week?\n\nBest regards,\n{{sender_name}}\n\nAlgoCrew\nAI-Powered Growth & Outbound Systems\nalgocrew.io\nhuzaifa.khalid@algocrew.io"
+},
+
+{
+  "name": "Follow-Up 2",
+
+  "subject": "Worth exploring?",
+
+  "body": "Hi {{name}},\n\nI know timing is everything, so I’ll keep this short.\n\nWe've been helping SaaS companies generate more qualified conversations through personalized AI outbound systems without adding SDR headcount.\n\nIf improving outbound efficiency or pipeline quality is a priority this quarter, I’d be happy to share a few ideas tailored for {{company}}.\n\nInterested?\n\nBest regards,\n{{sender_name}}\n\nAlgoCrew\nAI-Powered Growth & Outbound Systems\nalgocrew.io\nhuzaifa.khalid@algocrew.io"
+}
+
+],
+
+"field_mapping": {
+"FirstName": "FirstName",
+"LastName": "LastName",
+"EmployeeDesignation": "EmployeeDesignation",
+"CompanyName": "CompanyName",
+"Industry": "Industry",
+"Email": "Email",
+"PersonLinkedIn": "PersonLinkedIn",
+"CompanyLinkedIn": "Company Linkedin Url",
+"Website": "Website",
+"FirstPhone": "FirstPhone",
+"Country": "Country",
+"Status": "Status",
+"Tier": "Tier",
+"PriorityScore": "PriorityScore",
+"Owner": "Owner",
+"SendingInbox": "SendingInbox",
+"E1_Date": "E1_Date",
+"E2_Date": "E2_Date",
+"E3_Date": "E3_Date",
+"E4_Date": "E4_Date",
+"LI_Request": "LI_Request",
+"LI_Accepted": "LI_Accepted",
+"LastReply": "LastReply",
+"Notes": "Notes"
+},
+
+"table_fields": [
+"CompanyName",
+"Country",
+"E1_Date",
+"Email",
+"EmployeeDesignation",
+"FirstName",
+"Industry",
+"LastName",
+"LastReply",
+"Status",
+"Tier"
+]
 }
