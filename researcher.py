@@ -6,6 +6,28 @@ import openai
 import re
 
 
+SIGNATURE = """\
+Huzaifa Khalid
+CTO at Algocrew
+huzaifa.khalid@algocrew.io
+algocrew.io"""
+
+SIGN_OFF_WORDS = {"cordialement", "regards", "best", "sincerely", "thanks", "merci",
+                  "bien cordialement", "bien à vous", "à bientôt"}
+
+
+def _append_signature(body: str) -> str:
+    """Strip any GPT-generated sign-off / name and append the fixed signature."""
+    lines = body.rstrip().split("\n")
+    # Remove trailing blank lines + bare sign-off lines GPT tends to add
+    while lines and (not lines[-1].strip() or
+                     lines[-1].strip().lower().rstrip(",") in SIGN_OFF_WORDS or
+                     lines[-1].strip().lower() in ("huzaifa", "huzaifa khalid")):
+        lines.pop()
+    clean = "\n".join(lines).rstrip()
+    return f"{clean}\n\nCordialement,\n\n{SIGNATURE}"
+
+
 # Sequence-specific instructions injected into the prompt
 SEQUENCE_CONTEXT = {
     "E1": (
@@ -39,21 +61,26 @@ SEQUENCE_CONTEXT = {
     ),
 }
 
-DEFAULT_SYSTEM_PROMPT = """You are an elite B2B sales copywriter. You write cold emails that actually get replies.
+DEFAULT_SYSTEM_PROMPT = """You are an elite B2B sales copywriter writing in the French business email style — warm, direct, and respectful.
+
+STYLE — French business pattern:
+- Always open with "Bonjour {first_name}," on its own line
+- One line break after the greeting, then the first paragraph
+- Tone: confident but courteous — not pushy, not overly casual
+- Close with "Cordialement," on its own line before the signature block
+- Write in English unless the lead's country suggests French (France, Belgium, Morocco, Senegal, Algeria, Tunisia, etc.)
+- For French-speaking countries write in French using the same structure
 
 HARD RULES — break any of these and the email is rejected:
 1. NO placeholders, brackets, or variables whatsoever. No [X], {X}, <X>, or (X). Write the real words.
 2. The email must be 100% ready to send — not a template, not a draft.
 3. Use the recipient's EXACT name, company, title, and industry from the data.
-4. The body must be 80 words or fewer. Shorter = better.
+4. The body must be 80 words or fewer (excluding greeting and sign-off). Shorter = better.
 5. NO corporate filler: no "I hope this email finds you well", "synergy", "leverage", "circle back", "touch base".
 6. NO vague claims like "impressive growth" or "expanding service offerings" — be specific or say nothing.
 7. ONE call-to-action only — a specific day/time or a yes/no question.
 8. Subject line must NOT be "Quick question" or "Following up" — make it specific to the recipient.
-9. The body must end with the sender's name only — no title, no company, no phone in the body field.
-10. Write like a smart human, not a salesperson.
-
-SIGNATURE FORMAT: the body field must end with just the sender's first name on its own line, preceded by a line break. The full signature (email, phone, company) will be appended automatically — do NOT include it.
+9. Do NOT include any signature in the body — it will be appended automatically.
 
 Respond ONLY with valid JSON: {"subject": "...", "body": "..."}"""
 
@@ -121,12 +148,13 @@ def generate_custom_email(
 - Email: {sender_email}{value_prop_line}
 
 ━━ REQUIREMENTS ━━
-- Address them as "{first}" (first name only)
+- Start the body with "Bonjour {first}," on its own line
 - Reference "{company}" at least once naturally
-- Sign off as "{sender_name}" on the last line — first name only
-- Body ≤ 80 words
+- End the body with "Cordialement," — the full signature is appended automatically, do NOT write it
+- Body ≤ 80 words (excluding greeting and sign-off lines)
 - No placeholders, no brackets, no generic filler
-- The subject must reference something specific about {company} or {title} or {industry}
+- Subject must reference something specific about {company}, {title}, or {industry}
+- If {country} is France/Algeria/Morocco/Senegal/Belgium/Tunisia → write in French
 
 Write the final email now. Return JSON only."""
 
@@ -154,16 +182,7 @@ Write the final email now. Return JSON only."""
 
         bad = _has_placeholders(result["subject"]) + _has_placeholders(result["body"])
         if not bad:
-            # Append full signature footer to body
-            sender_first = sender_name.split()[0] if sender_name else sender_name
-            body = result["body"].rstrip()
-            # Remove bare first-name sign-off if GPT added it (we'll re-add with full sig)
-            lines = body.split("\n")
-            if lines and lines[-1].strip().lower() in (sender_first.lower(), sender_name.lower()):
-                body = "\n".join(lines[:-1]).rstrip()
-            result["body"] = (
-                body + f"\n\n{sender_name}\n{sender_email}"
-            )
+            result["body"] = _append_signature(result["body"])
             return result
 
         if attempt < max_retries:
@@ -176,8 +195,7 @@ Write the final email now. Return JSON only."""
             b = re.sub(r'\{[\w\s]*name[\w\s]*\}',    first,       b,                 flags=re.I)
             b = re.sub(r'\{[\w\s]*company[\w\s]*\}', company,     b,                 flags=re.I)
             b = re.sub(r'\{[\w\s]*sender[\w\s]*\}',  sender_name, b,                 flags=re.I)
-            result["subject"], result["body"] = s, b
-            result["body"] = result["body"].rstrip() + f"\n\n{sender_name}\n{sender_email}"
+            result["subject"], result["body"] = s, _append_signature(b)
             return result
 
     return result
