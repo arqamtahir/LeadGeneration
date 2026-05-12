@@ -401,6 +401,15 @@ function refreshBlastUI() {
       return '<option value="' + i + '">' + t.name + '</option>';
     }).join('');
 
+  // Populate status-after-send dropdown from pipeline statuses
+  var statusSel = document.getElementById('blast-status-after');
+  var prevVal   = statusSel.value;
+  statusSel.innerHTML = '<option value="">— No change —</option>' +
+    (config.pipeline_statuses || []).map(function (s) {
+      return '<option value="' + esc(s) + '">' + esc(s) + '</option>';
+    }).join('');
+  if (prevVal) statusSel.value = prevVal;
+
   // Restore daily limit from config
   if (config.daily_limit) {
     document.getElementById('blast-daily-limit').value = config.daily_limit;
@@ -456,18 +465,20 @@ function startBlast() {
   if (!cbs.length) { toast('Select leads in the Leads tab first', 'error'); return; }
 
   var leads   = cbs.map(function (cb) { return allLeads[parseInt(cb.dataset.idx)]; }).filter(Boolean);
-  var smtpIdx = parseInt(document.getElementById('blast-smtp').value)     || 0;
-  var seq     = document.getElementById('blast-sequence').value;
-  var minD    = parseInt(document.getElementById('min-delay').value)       || 120;
-  var maxD    = parseInt(document.getElementById('max-delay').value)       || 300;
-  var aiMode  = document.getElementById('blast-ai-mode').checked;
-  var smtp    = (config.smtp_accounts || [])[smtpIdx] || {};
-  var tplIdx  = parseInt(document.getElementById('blast-template').value) || 0;
-  var tpl     = (config.email_templates || [])[tplIdx] || {};
+  var smtpIdx     = parseInt(document.getElementById('blast-smtp').value)     || 0;
+  var seq         = document.getElementById('blast-sequence').value;
+  var minD        = parseInt(document.getElementById('min-delay').value)       || 120;
+  var maxD        = parseInt(document.getElementById('max-delay').value)       || 300;
+  var aiMode      = document.getElementById('blast-ai-mode').checked;
+  var smtp        = (config.smtp_accounts || [])[smtpIdx] || {};
+  var tplIdx      = parseInt(document.getElementById('blast-template').value) || 0;
+  var tpl         = (config.email_templates || [])[tplIdx] || {};
+  var statusAfter = document.getElementById('blast-status-after').value;
 
   _blastPayload = {
-    smtp_index: smtpIdx, sequence: seq, leads: leads,
-    min_delay: minD, max_delay: maxD, ai_mode: aiMode,
+    smtp_index:   smtpIdx, sequence: seq, leads: leads,
+    min_delay:    minD, max_delay: maxD, ai_mode: aiMode,
+    status_after: statusAfter,
     template: {
       subject: document.getElementById('blast-subject').value,
       body:    document.getElementById('blast-body').value
@@ -482,7 +493,8 @@ function startBlast() {
     '<div class="confirm-row"><span class="confirm-lbl">Template</span><span class="confirm-val">' + esc(tpl.name || '—') + '</span></div>' +
     '<div class="confirm-row"><span class="confirm-lbl">Sending From</span><span class="confirm-val">' + esc(smtp.email || smtp.name || '—') + '</span></div>' +
     '<div class="confirm-row"><span class="confirm-lbl">Delay</span><span class="confirm-val">' + Math.round(minD/60) + '–' + Math.round(maxD/60) + ' min between sends</span></div>' +
-    '<div class="confirm-row"><span class="confirm-lbl">AI Mode</span><span class="confirm-val">' + (aiMode ? '✦ On' : 'Off') + '</span></div>';
+    '<div class="confirm-row"><span class="confirm-lbl">AI Mode</span><span class="confirm-val">' + (aiMode ? '✦ On' : 'Off') + '</span></div>' +
+    '<div class="confirm-row"><span class="confirm-lbl">Status After Send</span><span class="confirm-val" style="color:var(--accent)">' + esc(statusAfter || '— No change —') + '</span></div>';
 
   document.getElementById('blast-confirm-modal').classList.remove('hidden');
   if (window.lucide) lucide.createIcons();

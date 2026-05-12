@@ -62,7 +62,7 @@ def _increment_daily_count() -> int:
 def start(leads: list[dict], smtp_cfg: dict, template: dict,
           min_delay: float, max_delay: float, sequence: str,
           ai_mode: bool = False, ai_cfg: dict = None, daily_limit: int = 30,
-          google_token: str = None) -> None:
+          google_token: str = None, status_after: str = "") -> None:
     """Spawn the blast thread. Raises if a blast is already running."""
     if state["running"]:
         raise RuntimeError("A blast is already running.")
@@ -71,7 +71,7 @@ def start(leads: list[dict], smtp_cfg: dict, template: dict,
     t = threading.Thread(
         target=_worker,
         args=(leads, smtp_cfg, template, min_delay, max_delay, sequence,
-              ai_mode, ai_cfg or {}, daily_limit, google_token),
+              ai_mode, ai_cfg or {}, daily_limit, google_token, status_after),
         daemon=True,
     )
     t.start()
@@ -89,7 +89,7 @@ def get_state() -> dict:
 # ── Private ────────────────────────────────────────────────────────────────────
 
 def _worker(leads, smtp_cfg, template, min_d, max_d, sequence,
-            ai_mode, ai_cfg, daily_limit, google_token):
+            ai_mode, ai_cfg, daily_limit, google_token, status_after):
     mode_label = "AI-Research" if ai_mode else "Template"
     _log(f"Blast started — {len(leads)} leads queued  [{mode_label} mode]  daily limit: {daily_limit}")
 
@@ -155,10 +155,15 @@ def _worker(leads, smtp_cfg, template, min_d, max_d, sequence,
             send_email(smtp_cfg, to_email, subject, body)
             new_status = f"{sequence} Sent" if sequence else "Contacted"
             stamp_email_sent(ws, lead["_row"], new_status, sequence)
+            # Update lead status if user selected one
+            if status_after:
+                from sheets import update_lead
+                update_lead(token_holder, lead["_row"], {"Status": status_after})
             _increment_daily_count()
             with _lock:
                 state["sent"] += 1
-            _log(f"OK  [{sequence}]  {lead.get('FirstName','')} {lead.get('LastName','')} <{to_email}>")
+            status_note = f" → {status_after}" if status_after else ""
+            _log(f"OK  [{sequence}]  {lead.get('FirstName','')} {lead.get('LastName','')} <{to_email}>{status_note}")
         except Exception as exc:
             _log(f"FAIL  {to_email}  —  {exc}")
 

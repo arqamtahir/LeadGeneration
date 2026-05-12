@@ -237,16 +237,17 @@ def api_blast_start():
 
     try:
         blast_module.start(
-            leads       = data["leads"],
-            smtp_cfg    = smtp_cfg,
-            template    = data["template"],
-            min_delay   = cfg["min_delay"],
-            max_delay   = cfg["max_delay"],
-            sequence    = data.get("sequence", "E1"),
-            ai_mode     = ai_mode,
-            ai_cfg      = ai_cfg,
+            leads        = data["leads"],
+            smtp_cfg     = smtp_cfg,
+            template     = data["template"],
+            min_delay    = cfg["min_delay"],
+            max_delay    = cfg["max_delay"],
+            sequence     = data.get("sequence", "E1"),
+            ai_mode      = ai_mode,
+            ai_cfg       = ai_cfg,
             daily_limit  = cfg.get("daily_limit", 30),
             google_token = current_user.google_token,
+            status_after = data.get("status_after", ""),
         )
         return jsonify({"ok": True})
     except RuntimeError as exc:
