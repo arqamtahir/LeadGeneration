@@ -245,8 +245,8 @@ def api_blast_start():
             sequence    = data.get("sequence", "E1"),
             ai_mode     = ai_mode,
             ai_cfg      = ai_cfg,
-            daily_limit = cfg.get("daily_limit", 30),
-            user        = current_user,
+            daily_limit  = cfg.get("daily_limit", 30),
+            google_token = current_user.google_token,
         )
         return jsonify({"ok": True})
     except RuntimeError as exc:

@@ -62,7 +62,7 @@ def _increment_daily_count() -> int:
 def start(leads: list[dict], smtp_cfg: dict, template: dict,
           min_delay: float, max_delay: float, sequence: str,
           ai_mode: bool = False, ai_cfg: dict = None, daily_limit: int = 30,
-          user=None) -> None:
+          google_token: str = None) -> None:
     """Spawn the blast thread. Raises if a blast is already running."""
     if state["running"]:
         raise RuntimeError("A blast is already running.")
@@ -71,7 +71,7 @@ def start(leads: list[dict], smtp_cfg: dict, template: dict,
     t = threading.Thread(
         target=_worker,
         args=(leads, smtp_cfg, template, min_delay, max_delay, sequence,
-              ai_mode, ai_cfg or {}, daily_limit, user),
+              ai_mode, ai_cfg or {}, daily_limit, google_token),
         daemon=True,
     )
     t.start()
@@ -89,12 +89,18 @@ def get_state() -> dict:
 # ── Private ────────────────────────────────────────────────────────────────────
 
 def _worker(leads, smtp_cfg, template, min_d, max_d, sequence,
-            ai_mode, ai_cfg, daily_limit, user):
+            ai_mode, ai_cfg, daily_limit, google_token):
     mode_label = "AI-Research" if ai_mode else "Template"
     _log(f"Blast started — {len(leads)} leads queued  [{mode_label} mode]  daily limit: {daily_limit}")
 
+    # Build a lightweight token holder so get_sheet() can read .google_token
+    class _TokenHolder:
+        pass
+    token_holder = _TokenHolder()
+    token_holder.google_token = google_token
+
     try:
-        ws = get_sheet(user)
+        ws = get_sheet(token_holder)
     except Exception as exc:
         _log(f"Sheet connection failed: {exc}")
         state["running"] = False
