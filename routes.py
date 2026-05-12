@@ -246,6 +246,7 @@ def api_blast_start():
             ai_mode     = ai_mode,
             ai_cfg      = ai_cfg,
             daily_limit = cfg.get("daily_limit", 30),
+            user        = current_user,
         )
         return jsonify({"ok": True})
     except RuntimeError as exc:
