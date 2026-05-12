@@ -19,3 +19,5 @@ services:
         sync: false
       - key: RENDER_EXTERNAL_URL
         value: "https://leadgeneration-sczd.onrender.com"
+      - key: RESEND_API_KEY
+        sync: false
