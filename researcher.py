@@ -111,6 +111,9 @@ SENDER:
 Write the final email now. Greet "{first}", reference "{company}" naturally, sign off as "{sender_name}". No brackets, no placeholders."""
 
     sys = system_prompt.strip() if system_prompt.strip() else DEFAULT_SYSTEM_PROMPT
+    # OpenAI requires the word "json" somewhere in messages when using json_object mode
+    if "json" not in sys.lower():
+        sys += "\n\nRespond ONLY with valid JSON: {\"subject\": \"...\", \"body\": \"...\"}"
 
     for attempt in range(max_retries + 1):
         response = client.chat.completions.create(

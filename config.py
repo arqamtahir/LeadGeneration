@@ -62,14 +62,63 @@ DEFAULT_CONFIG = {
     ],
     "email_templates": [
         {
+            "name": "E1 - Cold Intro (EN)", "sequence": "E1",
+            "subject": "Quick question, {first_name}",
+            "body": (
+                "Hi {first_name},\n\n"
+                "I came across {company} and was impressed by what you're building in the {industry} space.\n\n"
+                "I work with companies like yours to [specific value proposition — e.g. reduce operational costs / "
+                "grow pipeline / automate workflows] — usually seeing results within the first 30 days.\n\n"
+                "Would a quick 15-min call this week make sense? Happy to work around your schedule.\n\n"
+                "Best,\n{sender_name}"
+            ),
+        },
+        {
+            "name": "E2 - Follow-up 1 (EN)", "sequence": "E2",
+            "subject": "Re: Quick question, {first_name}",
+            "body": (
+                "Hi {first_name},\n\n"
+                "Wanted to bump this up in case it got buried.\n\n"
+                "I've been helping {industry} companies solve [specific problem] — "
+                "thought it could be relevant for {company} given your growth stage.\n\n"
+                "Even a 10-minute chat could be worth it. Would Thursday or Friday work?\n\n"
+                "Best,\n{sender_name}"
+            ),
+        },
+        {
+            "name": "E3 - Follow-up 2 (EN)", "sequence": "E3",
+            "subject": "Still worth a chat, {first_name}?",
+            "body": (
+                "Hi {first_name},\n\n"
+                "I know you're busy — I'll keep this short.\n\n"
+                "Is [the problem we solve] something {company} is actively working on, "
+                "or is the timing just not right?\n\n"
+                "Either answer helps — just reply with a yes or no and I'll take it from there.\n\n"
+                "Thanks,\n{sender_name}"
+            ),
+        },
+        {
+            "name": "E4 - Break-up (EN)", "sequence": "E4",
+            "subject": "Closing the loop, {first_name}",
+            "body": (
+                "Hi {first_name},\n\n"
+                "I've reached out a few times and haven't heard back, so I'll assume the timing isn't right.\n\n"
+                "I'll leave it here — no hard feelings at all. "
+                "If things change down the road, feel free to reach out and I'll be happy to reconnect.\n\n"
+                "Wishing you and the {company} team all the best.\n\n"
+                "{sender_name}"
+            ),
+        },
+        {
             "name": "E1 - Cold Intro (FR)", "sequence": "E1",
             "subject": "Question rapide, {first_name}",
             "body": (
                 "Bonjour {first_name},\n\n"
-                "Je tombe sur {company} et j'ai remarque votre travail dans le secteur {industry}.\n\n"
-                "Chez Farance, on aide des entreprises comme la votre a accelerer leurs projets "
-                "sans grossir l'equipe.\n\n"
-                "Ca vaut un echange de 15 min la semaine prochaine ?\n\n"
+                "J'ai decouvert {company} et j'ai ete impressionne par ce que vous faites dans le secteur {industry}.\n\n"
+                "J'accompagne des entreprises comme la votre pour [proposition de valeur specifique — "
+                "ex. reduire les couts / accelerer la croissance / automatiser les processus] "
+                "— avec des resultats concrets des les premieres semaines.\n\n"
+                "Un echange de 15 min cette semaine serait-il possible ?\n\n"
                 "Cordialement,\n{sender_name}"
             ),
         },
@@ -78,21 +127,23 @@ DEFAULT_CONFIG = {
             "subject": "Re: Question rapide, {first_name}",
             "body": (
                 "Bonjour {first_name},\n\n"
-                "Je me permets de relancer mon message precedent.\n\n"
-                "Nous avons aide des entreprises similaires a obtenir des resultats concrets rapidement.\n\n"
-                "Un echange de 15 min cette semaine ?\n\n"
+                "Je me permets de relancer mon precedent message, au cas ou il serait passe inapercru.\n\n"
+                "J'ai aide plusieurs entreprises du secteur {industry} a resoudre [probleme specifique] — "
+                "je pense que cela pourrait aussi etre pertinent pour {company}.\n\n"
+                "Avez-vous 10 minutes jeudi ou vendredi ?\n\n"
                 "Cordialement,\n{sender_name}"
             ),
         },
         {
             "name": "E3 - Follow-up 2 (FR)", "sequence": "E3",
-            "subject": "Derniere tentative -- {company}",
+            "subject": "Ca vaut encore un echange, {first_name} ?",
             "body": (
                 "Bonjour {first_name},\n\n"
-                "C'est mon dernier message pour ne pas encombrer votre boite.\n\n"
-                "Si le timing n'est pas bon maintenant, je reviendrai dans quelques mois.\n\n"
-                "Mais si vous avez 15 minutes cette semaine, je suis disponible.\n\n"
-                "Cordialement,\n{sender_name}"
+                "Je sais que vous etes pris — je serai bref.\n\n"
+                "[Le probleme que nous resolvons] est-il une priorite pour {company} en ce moment, "
+                "ou le timing n'est simplement pas le bon ?\n\n"
+                "Un simple oui ou non suffit — je m'adapte en fonction.\n\n"
+                "Merci,\n{sender_name}"
             ),
         },
         {
@@ -100,9 +151,12 @@ DEFAULT_CONFIG = {
             "subject": "On ferme le dossier, {first_name}",
             "body": (
                 "Bonjour {first_name},\n\n"
-                "Je ferme votre dossier pour l'instant -- je ne veux pas vous deranger.\n\n"
-                "Si les choses changent, n'hesitez pas a me recontacter.\n\n"
-                "Bonne continuation,\n{sender_name}"
+                "Je vous ai contacte a plusieurs reprises sans retour de votre part — "
+                "je comprends tout a fait que le timing ne soit pas ideal.\n\n"
+                "Je ne vous soliciterai plus, mais si la situation evolue, "
+                "n'hesitez pas a revenir vers moi — ce sera avec plaisir.\n\n"
+                "Bonne continuation a vous et a toute l'equipe {company}.\n\n"
+                "{sender_name}"
             ),
         },
     ],
